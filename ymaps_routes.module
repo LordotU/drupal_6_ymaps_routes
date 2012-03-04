@@ -1,4 +1,5 @@
 <?php
+    define('MODULE_PATH', drupal_get_path('module', 'ymaps_routes'));
 
     function ymaps_routes_perm() {
         return array('access ymaps-routes settings', 'access ymaps-routes content');
@@ -93,4 +94,58 @@
     }
     function ymaps_routes_settings_page() {
         return drupal_get_form('ymaps_routes_settings_form');
+    }
+
+    function ymaps_routes_form_alter(&$form, &$form_state, $form_id) {
+        if(in_array($form['type']['#value'], variable_get('ymaps-routes-content-types', array()))) {
+            $form['ymaps-routes'] = array(
+                '#type' => 'fieldset',
+                '#title' => t('Ymaps routes'),
+                '#weight' => -1
+            );
+            $form['ymaps-routes']['point-types'] = array(
+                '#type' => 'fieldset',
+                '#title' => t('Point type'),
+                '#collapsible' => true,
+                '#collapsed' => true
+            );
+            $form['ymaps-routes']['point-types']['point-type'] = array(
+                '#type' => 'radios',
+                '#title' => '',
+                '#options' => array(t('Edge point'), t('Stop point')),
+                '#default_value' => 0
+            );
+            $form['ymaps-routes']['clear-map'] = array(
+                '#type' => 'button',
+                '#value' => t('Clear map')
+            );
+            $form['ymaps-routes']['polyline'] = array(
+                '#type' => 'textarea',
+                '#resizable' => false,
+                '#attributes' => array('style' => 'display:none;'),
+                '#default_value' => null
+            );
+            $form['ymaps-routes']['polyline']['#suffix'] = '
+                <div id="YMaps_Map" class="admin" style="height: 350px; margin-bottom: 15px; width: 100%;"></div>
+            ';
+
+            $form['#after_build'][] = 'ymaps_routes_form_after_build';
+        }
+    }
+    function ymaps_routes_form_after_build($form, &$from_state) {
+        drupal_add_css(MODULE_PATH.'/css/admin.css');
+        drupal_add_js('document.write("<" + "script type=\'text/javascript\' src=\'http://api-maps.yandex.ru/1.1/index.xml?key='.variable_get('ymaps-routes-api-key', null).'\'><" + "/script>");', 'inline');
+        drupal_add_js(MODULE_PATH.'/js/map.js');
+        drupal_add_js(MODULE_PATH.'/js/admin.js');
+
+        $form['#validate'][] = 'ymaps_routes_form_validate';
+        $form['#submit'][] = 'ymaps_foutes_form_submit';
+
+        return $form;
+    }
+    function ymaps_routes_form_validate($elements, &$form_state) {
+
+    }
+    function ymaps_routes_form_submit($form, &$form_state) {
+        
     }
