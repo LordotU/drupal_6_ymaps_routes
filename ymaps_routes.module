@@ -1,6 +1,11 @@
 <?php
     define('MODULE_PATH', drupal_get_path('module', 'ymaps_routes'));
 
+    function ymaps_routes_init() {
+        drupal_add_js('document.write("<" + "script type=\'text/javascript\' src=\'http://api-maps.yandex.ru/1.1/index.xml?key='.variable_get('ymaps-routes-api-key', null).'\'><" + "/script>");', 'inline');
+        drupal_add_js(MODULE_PATH.'/js/map.js');
+    }
+
     function ymaps_routes_perm() {
         return array('access ymaps-routes settings', 'access ymaps-routes content');
     }
@@ -134,8 +139,6 @@
     }
     function ymaps_routes_form_after_build($form, &$from_state) {
         drupal_add_css(MODULE_PATH.'/css/admin.css');
-        drupal_add_js('document.write("<" + "script type=\'text/javascript\' src=\'http://api-maps.yandex.ru/1.1/index.xml?key='.variable_get('ymaps-routes-api-key', null).'\'><" + "/script>");', 'inline');
-        drupal_add_js(MODULE_PATH.'/js/map.js');
         drupal_add_js(MODULE_PATH.'/js/admin.js');
 
         $form['#validate'][] = 'ymaps_routes_form_validate';
