@@ -4,6 +4,7 @@
     function ymaps_routes_init() {
         drupal_add_js('document.write("<" + "script type=\'text/javascript\' src=\'http://api-maps.yandex.ru/1.1/index.xml?key='.variable_get('ymaps-routes-api-key', null).'\'><" + "/script>");', 'inline');
         drupal_add_js(MODULE_PATH.'/js/map.js');
+        drupal_add_js(array('ymaps_routes' => array('isAdmin' => false)), 'setting');
     }
 
     function ymaps_routes_perm() {
@@ -29,6 +30,11 @@
             $result[$key] = $type->name;
         
         return $result;
+    }
+    function _ymaps_routes_get_route() {
+        $query = db_query("SELECT * FROM {ymaps_routes} WHERE `nid` = %d", arg(1));
+
+        return arg(0)=='node' && db_affected_rows() ? db_fetch_object($query) : false;
     }
     function ymaps_routes_settings_form() {
         $form['api-key'] = array(
@@ -92,10 +98,16 @@
     function ymaps_routes_settings_form_submit($form, &$form_state) {
         variable_set('ymaps-routes-api-key', $form_state['values']['api-key-value']);
 
-        variable_set('ymaps-routes-content-types', array_keys($form_state['values']['content-types-list']));
+        $content_types = array();
+        foreach($form_state['values']['content-types-list'] as $key => $value)
+            if($value)
+                $content_types[] = $key;
+        variable_set('ymaps-routes-content-types', $content_types);
 
         variable_set('ymaps-routes-line-width', $form_state['values']['route-line-width']);
         variable_set('ymaps-routes-line-color', $form_state['values']['route-line-color']);
+
+        drupal_set_message(t('Settings has been successful saved!'));
     }
     function ymaps_routes_settings_page() {
         return drupal_get_form('ymaps_routes_settings_form');
@@ -103,6 +115,8 @@
 
     function ymaps_routes_form_alter(&$form, &$form_state, $form_id) {
         if(in_array($form['type']['#value'], variable_get('ymaps-routes-content-types', array()))) {
+            $route = _ymaps_routes_get_route();
+
             $form['ymaps-routes'] = array(
                 '#type' => 'fieldset',
                 '#title' => t('Ymaps routes'),
@@ -124,11 +138,16 @@
                 '#type' => 'button',
                 '#value' => t('Clear map')
             );
+            $form['ymaps-routes']['clear-map']['#suffix'] = '
+                 <span id="edit-waiting" style="color: red; display: none; font-size: 16px; font-style: italic; vertical-align: middle;">
+                    '.t('The route is processing. Please, wait...').'
+                </span>
+            ';
             $form['ymaps-routes']['polyline'] = array(
                 '#type' => 'textarea',
                 '#resizable' => false,
                 '#attributes' => array('style' => 'display:none;'),
-                '#default_value' => null
+                '#default_value' => $route ? $route->json_value : ''
             );
             $form['ymaps-routes']['polyline']['#suffix'] = '
                 <div id="YMaps_Map" class="admin" style="height: 350px; margin-bottom: 15px; width: 100%;"></div>
@@ -139,16 +158,29 @@
     }
     function ymaps_routes_form_after_build($form, &$from_state) {
         drupal_add_css(MODULE_PATH.'/css/admin.css');
+        drupal_add_js(MODULE_PATH.'/js/json2.js');
+        drupal_add_js(MODULE_PATH.'/js/jquery.slowEach.js');
         drupal_add_js(MODULE_PATH.'/js/admin.js');
-
-        $form['#validate'][] = 'ymaps_routes_form_validate';
-        $form['#submit'][] = 'ymaps_foutes_form_submit';
+        drupal_add_js(array('ymaps_routes' => array('isAdmin' => true)), 'setting');
 
         return $form;
     }
-    function ymaps_routes_form_validate($elements, &$form_state) {
 
-    }
-    function ymaps_routes_form_submit($form, &$form_state) {
-        
+    function ymaps_routes_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+        if(in_array($node->type, variable_get('ymaps-routes-content-types', array())))
+            $route = array(
+                'nid' => $node->nid,
+                'json_value' => $node->polyline
+            );
+            switch($op) {
+                case 'insert':
+                    drupal_write_record('ymaps_routes', $route);
+                    break;
+                case 'update':
+                    drupal_write_record('ymaps_routes', $route, 'nid');
+                    break;
+                case 'delete':
+                    db_query("DELETE FROM {ymaps_routes} WHERE `nid` = %d", $node->nid);
+                    break;
+            }
     }
