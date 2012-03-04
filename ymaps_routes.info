@@ -1,0 +1,4 @@
+name = Ymaps Routes
+description = Allows to attach route on the map to node page
+version = 6.x-0.0.1
+core = 6.x
