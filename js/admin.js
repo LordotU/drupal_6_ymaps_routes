@@ -1,4 +1,3 @@
-var polyline;
 var pointsGlobalArray = new Array();
 var mapClickListener;
 
@@ -13,8 +12,6 @@ function addPointsToValue() {
 function addPointsToMap(route) {
     $.slowEach(route.points, 10, function(i) {
         polyline.addPoint(new YMaps.GeoPoint($(this)[0].lng, $(this)[0].lat));
-
-
 
         if($(this)[0].type == 1) {
             var stopPoint = new YMaps.Placemark(new YMaps.GeoPoint($(this)[0].lng, $(this)[0].lat));
@@ -36,7 +33,7 @@ function addPointsToMap(route) {
 
     addPointsToValue();
 }
-function addDeletePoints(polyline, index, fromValue, route) {
+function addDeletePoints(polyline, index) {
     var points = polyline.getPoints();
     var pointToAction = new Object();
 
