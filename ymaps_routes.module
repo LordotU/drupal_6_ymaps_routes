@@ -1,9 +1,27 @@
 <?php
     define('MODULE_PATH', drupal_get_path('module', 'ymaps_routes'));
 
+    function _ymaps_routes_get_content_types() {
+        $types = node_get_types('types');
+
+        $result = array();
+        foreach($types as $key => $type)
+            $result[$key] = $type->name;
+
+        return $result;
+    }
+    function _ymaps_routes_get_route() {
+        $query = db_query("SELECT * FROM {ymaps_routes} WHERE `nid` = %d", arg(1));
+
+        return arg(0)=='node' && db_affected_rows() ? db_fetch_object($query) : false;
+    }
+
     function ymaps_routes_init() {
+        drupal_add_css(MODULE_PATH.'/css/map.css');
         drupal_add_js('document.write("<" + "script type=\'text/javascript\' src=\'http://api-maps.yandex.ru/1.1/index.xml?key='.variable_get('ymaps-routes-api-key', null).'\'><" + "/script>");', 'inline');
         drupal_add_js(MODULE_PATH.'/js/map.js');
+        drupal_add_js(MODULE_PATH.'/js/json2.js');
+        drupal_add_js(MODULE_PATH.'/js/jquery.slowEach.js');
         drupal_add_js(array('ymaps_routes' => array('isAdmin' => false)), 'setting');
     }
 
@@ -15,102 +33,13 @@
         $items['admin/settings/ymaps_routes'] = array(
             'title' => t('Ymaps routes settings'),
             'description' => t('This page allows you to setup Ymaps routes module'),
-            'page callback' => 'ymaps_routes_settings_page',
-            'access arguments' => array('access ymaps-routes settings')
+            'page callback' => 'drupal_get_form',
+            'page arguments' => array('ymaps_routes_settings_form'),
+            'access arguments' => array('access ymaps-routes settings'),
+            'file' => 'ymaps_routes.admin.inc.php'
         );
 
         return $items;
-    }
-
-    function _ymaps_routes_get_content_types() {
-        $types = node_get_types('types');
-
-        $result = array();
-        foreach($types as $key => $type)
-            $result[$key] = $type->name;
-        
-        return $result;
-    }
-    function _ymaps_routes_get_route() {
-        $query = db_query("SELECT * FROM {ymaps_routes} WHERE `nid` = %d", arg(1));
-
-        return arg(0)=='node' && db_affected_rows() ? db_fetch_object($query) : false;
-    }
-    function ymaps_routes_settings_form() {
-        $form['api-key'] = array(
-            '#type' => 'fieldset',
-            '#title' => t('API key')
-        );
-        $form['api-key']['api-key-value'] = array(
-            '#type' => 'textfield',
-            '#title' => '',
-            '#description' => t('If you don\'t have API key, you can get it here - <a href="http://api.yandex.ru/maps/form.xml">http://api.yandex.ru/maps/form.xml</a>. You should have an account on Yandex.'),
-            '#default_value' => variable_get('ymaps-routes-api-key', '')
-        );
-
-        $form['content-types'] = array(
-            '#type' => 'fieldset',
-            '#title' => t('Content types')
-        );
-        $form['content-types']['content-types-list'] = array(
-            '#type' => 'checkboxes',
-            '#title' => '',
-            '#description' => t('Select content types to display routes.'),
-            '#options' => _ymaps_routes_get_content_types(),
-            '#default_value' => variable_get('ymaps-routes-content-types', array())
-        );
-
-        $form['route-line-settings'] = array(
-            '#type' => 'fieldset',
-            '#title' => t('Route line settings'),
-            '#description' => t('Default line settings for all routes. <b>Note, that the individual route settings will override default settings..</b>')
-        );
-        $form['route-line-settings']['route-line-width'] = array(
-            '#type' => 'select',
-            '#title' => t('Line width in pixels'),
-            '#options' => drupal_map_assoc(array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
-            '#default_value' => variable_get('ymaps-routes-line-width', 3)
-        );
-        $form['route-line-settings']['route-line-color'] = array(
-            '#type' => 'textfield',
-            '#title' => t('Line color in HEX'),
-            '#maxlength' => 6,
-            '#size' => 6,
-            '#field_prefix' => '#',
-            '#default_value' => variable_get('ymaps-routes-line-color', 'ff0000')
-        );
-
-        $form['submit'] = array(
-            '#type' => 'submit',
-            '#value' => t('Save settings for all routes')
-        );
-
-        return $form;
-    }
-    function ymaps_routes_settings_form_validate($elements, &$form_state) {
-        if(empty($form_state['values']['api-key-value']))
-            form_set_error('api-key-value', t('Field <em><b>API key</b></em> is required'));
-        if(empty($form_state['values']['route-line-color']))
-            form_set_error('route-line-color', t('Field <em><b>Line color</b></em> is required'));
-        if(!preg_match('/^[a-z0-9]+$/i', $form_state['values']['route-line-color']))
-            form_set_error('route-line-color', t('Value of field <em><b>Line color</b></em> should contains only alphabetic and numbers'));
-    }
-    function ymaps_routes_settings_form_submit($form, &$form_state) {
-        variable_set('ymaps-routes-api-key', $form_state['values']['api-key-value']);
-
-        $content_types = array();
-        foreach($form_state['values']['content-types-list'] as $key => $value)
-            if($value)
-                $content_types[] = $key;
-        variable_set('ymaps-routes-content-types', $content_types);
-
-        variable_set('ymaps-routes-line-width', $form_state['values']['route-line-width']);
-        variable_set('ymaps-routes-line-color', $form_state['values']['route-line-color']);
-
-        drupal_set_message(t('Settings has been successful saved!'));
-    }
-    function ymaps_routes_settings_page() {
-        return drupal_get_form('ymaps_routes_settings_form');
     }
 
     function ymaps_routes_form_alter(&$form, &$form_state, $form_id) {
@@ -150,7 +79,7 @@
                 '#default_value' => $route ? $route->json_value : ''
             );
             $form['ymaps-routes']['polyline']['#suffix'] = '
-                <div id="YMaps_Map" class="admin" style="height: 350px; margin-bottom: 15px; width: 100%;"></div>
+                <div id="YMaps_Map" class="admin"></div>
             ';
 
             $form['#after_build'][] = 'ymaps_routes_form_after_build';
@@ -158,8 +87,6 @@
     }
     function ymaps_routes_form_after_build($form, &$from_state) {
         drupal_add_css(MODULE_PATH.'/css/admin.css');
-        drupal_add_js(MODULE_PATH.'/js/json2.js');
-        drupal_add_js(MODULE_PATH.'/js/jquery.slowEach.js');
         drupal_add_js(MODULE_PATH.'/js/admin.js');
         drupal_add_js(array('ymaps_routes' => array('isAdmin' => true)), 'setting');
 
@@ -172,6 +99,7 @@
                 'nid' => $node->nid,
                 'json_value' => $node->polyline
             );
+        
             switch($op) {
                 case 'insert':
                     drupal_write_record('ymaps_routes', $route);
@@ -183,4 +111,37 @@
                     db_query("DELETE FROM {ymaps_routes} WHERE `nid` = %d", $node->nid);
                     break;
             }
+    }
+
+    function ymaps_routes_block($op = 'list', $delta = 0, $edit = array()) {
+        switch($op) {
+            case 'list':
+                $block[0] = array(
+                    'info' => t('Ymaps routes block')
+                );
+
+                return $block;
+                break;
+            case 'view':
+                if(arg(0) == 'node' && is_numeric(arg(1)) && !arg(2)) {
+                    $route = _ymaps_routes_get_route();
+
+                    if($route) {
+                        drupal_add_js(array(
+                                           'ymaps_routes' => array('line_color' => variable_get('ymaps-routes-line-color', 'ff0000'))
+                                      ), 'setting');
+                        drupal_add_js(array(
+                                           'ymaps_routes' => array('line_width' => variable_get('ymaps-routes-line-width', 3))
+                                      ), 'setting');
+                        drupal_add_js(array('ymaps_routes' => array('json_value' => $route->json_value)), 'setting');
+                        drupal_add_js(MODULE_PATH.'/js/user.js');
+
+                        $block['subject'] = t('Ymaps routes');
+                        $block['content'] = '<div id="YMaps_Map" class="user"></div>';
+                    }
+
+                    return $block;
+                }
+                break;
+        }
     }
