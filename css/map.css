@@ -1,6 +1,8 @@
 #YMaps_Map {
-  height: 350px;
   margin-bottom: 15px;
+}
+#YMaps_Map.admin {
+  height: 350px;
   width: 100%;
 }
 

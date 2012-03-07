@@ -1,4 +1,14 @@
 <?php
+  
+  function _ymaps_routes_get_content_types() {
+    $types = node_get_types('types');
+
+    $result = array();
+    foreach($types as $key => $type)
+      $result[$key] = $type->name;
+
+    return $result;
+  }
 
   function ymaps_routes_settings_form() {
     $form['api-key'] = array(
@@ -60,6 +70,27 @@
       '#disabled' => user_access('access administration pages') ? false : true
     );
 
+    $form['map-controls'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Admin map controls visibility')
+      );
+    $form['map-controls']['controls-value'] = array(
+      '#type' => 'checkboxes',
+      '#options' => array(
+        'TYPE_CONTROL' => 'Map type control',
+        'TOOL_BAR' => 'Tool bar control',
+        'ZOOM' => 'Map zoom control',
+        'MINI_MAP' => 'Mini map control',
+        'SCALE_LINE' => 'Scale line control',
+        'SEARCH_CONTROL' => 'Search control'
+      ),
+      '#default_value' => variable_get(VARIABLE_MAP_CONTROLS, array('TYPE_CONTROL', 'ZOOM', 'MINI_MAP', 'SEARCH_CONTROL')),
+      /*
+       * Добавлено специально для демо-версии
+       */
+      '#disabled' => user_access('access administration pages') ? false : true
+    );
+
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Save settings for all routes'),
@@ -82,14 +113,12 @@
   function ymaps_routes_settings_form_submit($form, &$form_state) {
     variable_set(VARIABLE_API_KEY, $form_state['values']['api-key-value']);
 
-    $content_types = array();
-    foreach($form_state['values']['content-types-list'] as $key => $value)
-      if($value)
-        $content_types[] = $key;
-    variable_set(VARIABLE_CONTENT_TYPES, $content_types);
+    variable_set(VARIABLE_CONTENT_TYPES, _ymaps_routes_construct_variable($form_state['values']['content-types-list']));
 
     variable_set(VARIABLE_LINE_WIDTH, $form_state['values']['route-line-width']);
     variable_set(VARIABLE_LINE_COLOR, $form_state['values']['route-line-color']);
+
+    variable_set(VARIABLE_MAP_CONTROLS, _ymaps_routes_construct_variable($form_state['values']['controls-value']));
 
     drupal_set_message(t('Settings has been successful saved!'));
   }
