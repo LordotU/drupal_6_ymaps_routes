@@ -18,14 +18,14 @@ function drawRoute(json_value) {
 
   var route = JSON.parse(json_value);
   $.slowEach(route.points, 10, function(i) {
-      if(this.type == 1) {
-          var stopPoint = new YMaps.Placemark(new YMaps.GeoPoint(this.lng, this.lat));
-          stopPoint.name = this.stopPointName;
-          map.addOverlay(stopPoint);
-      }
+    if(this.type == 1) {
+      var stopPoint = new YMaps.Placemark(new YMaps.GeoPoint(this.lng, this.lat));
+      stopPoint.name = this.stopPointName;
+      map.addOverlay(stopPoint);
+    }
 
-      polyline.addPoint(new YMaps.GeoPoint(this.lng, this.lat));
-      if(route.points.length == i+1)
-        map.setBounds(new YMaps.GeoCollectionBounds(polyline.getPoints()));
+    polyline.addPoint(new YMaps.GeoPoint(this.lng, this.lat));
+    if(route.points.length == i+1)
+    map.setBounds(new YMaps.GeoCollectionBounds(polyline.getPoints()));
   });
 }

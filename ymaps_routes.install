@@ -1,38 +1,38 @@
 <?php
 
-    function ymaps_routes_schema() {
-        $schema['ymaps_routes'] = array(
-            'fields' => array(
-                'nid' => array(
-                    'type' => 'int',
-                    'unsigned' => true,
-                    'not null' => true
-                ),
-                'fid' => array(
-                    'type' => 'int',
-                    'unsigned' => true
-                ),
-                'line_width' => array(
-                    'type' => 'int',
-                    'unsigned' => true
-                ),
-                'line_color' => array(
-                    'type' => 'varchar',
-                    'length' => 6
-                ),
-                'json_value' => array(
-                    'type' => 'text'
-                )
-            ),
-            'primary key' => array('nid')
-        );
+  function ymaps_routes_schema() {
+    $schema['ymaps_routes'] = array(
+      'fields' => array(
+        'nid' => array(
+          'type' => 'int',
+          'unsigned' => true,
+          'not null' => true
+        ),
+        'fid' => array(
+          'type' => 'int',
+          'unsigned' => true
+        ),
+        'line_width' => array(
+          'type' => 'int',
+          'unsigned' => true
+        ),
+        'line_color' => array(
+          'type' => 'varchar',
+          'length' => 6
+        ),
+        'json_value' => array(
+          'type' => 'text'
+        )
+      ),
+      'primary key' => array('nid')
+    );
 
-        return $schema;
-    }
+    return $schema;
+  }
 
-    function ymaps_routes_install() {
-        drupal_install_schema('ymaps_routes');
-    }
-    function ymaps_routes_uninstall() {
-        drupal_uninstall_schema('ymaps_routes');
-    }
+  function ymaps_routes_install() {
+    drupal_install_schema('ymaps_routes');
+  }
+  function ymaps_routes_uninstall() {
+    drupal_uninstall_schema('ymaps_routes');
+  }

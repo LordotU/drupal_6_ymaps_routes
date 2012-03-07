@@ -1,5 +1,18 @@
 #YMaps_Map {
-    height: 350px;
-    margin-bottom: 15px;
-    width: 100%;
+  height: 350px;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+table.YMaps-b-balloon-frame {
+  margin: 0;
+  width: auto;
+}
+table.YMaps-b-balloon-frame td {
+  padding: 0 !important;
+}
+div.YMaps-b-balloon-content {
+  height: auto !important;
+  overflow: auto !important;
+  width: auto !important;
 }
