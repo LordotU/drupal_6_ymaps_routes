@@ -33,6 +33,16 @@
     return arg(0)=='node' && db_affected_rows() ? db_fetch_object($query) : false;
   }
 
+  function _ymaps_routes_get_markers() {
+    $markers_query = db_query("SELECT {files}.`filepath`, {files}.`fid` FROM {files} INNER JOIN {ymaps_routes} ON {ymaps_routes}.`fid` = {files}.`fid`");
+
+    $markers = array();
+    while($markers_result = db_fetch_object($markers_query))
+      $markers[$markers_result->fid] = theme_image($markers_result->filepath); //@todo Добавить ресайз маркеров к одному линейному размеру
+
+    return $markers;
+  }
+
   function ymaps_routes_init() {
     drupal_add_css(MODULE_PATH.'/css/map.css');
     drupal_add_js('document.write("<" + "script type=\'text/javascript\' src=\'http://api-maps.yandex.ru/1.1/index.xml?key='.variable_get('ymaps-routes-api-key', null).'\'><" + "/script>");', 'inline');
@@ -63,11 +73,14 @@
     if(in_array($form['type']['#value'], variable_get(VARIABLE_CONTENT_TYPES, array())) && user_access('access ymaps-routes content')) {
       $route = _ymaps_routes_get_route();
 
+      $form['#attributes'] = array('enctype' => "multipart/form-data");
+
       $form['ymaps-routes'] = array(
         '#type' => 'fieldset',
         '#title' => t('Ymaps routes'),
         '#weight' => -1
       );
+      
       $form['ymaps-routes']['route-line-settings'] = array(
         '#type' => 'fieldset',
         '#title' => t('Route line settings'),
@@ -90,6 +103,7 @@
         '#default_value' => $route->line_color ? $route->line_color : null,
         '#attributes' => array('style' => 'display:inline;width:auto;')
       );
+
       $form['ymaps-routes']['point-types'] = array(
         '#type' => 'fieldset',
         '#title' => t('Point type'),
@@ -102,6 +116,7 @@
         '#options' => array(t('Edge point'), t('Stop point')),
         '#default_value' => 0
       );
+
       $form['ymaps-routes']['clear-map'] = array(
         '#type' => 'button',
         '#value' => t('Clear map')
@@ -111,6 +126,21 @@
           '.t('The route is processing. Please, wait...').'
         </span>
       ';
+
+      $form['ymaps-routes']['markers'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Markers')
+      );
+      $form['ymaps-routes']['markers']['markers_list'] = array(
+        '#type' => 'radios',
+        '#options' => _ymaps_routes_get_markers(),
+        '#default_value' => $route ? $route->fid : 0
+      );
+      $form['ymaps-routes']['markers']['markers_file'] = array(
+        '#type' => 'file',
+        '#title' => t('Upload new marker')
+      );
+
       $form['ymaps-routes']['polyline'] = array(
         '#type' => 'textarea',
         '#resizable' => false,
@@ -135,21 +165,43 @@
     ), 'setting');
 
     $form['#validate'][] = 'ymaps_routes_form_validate';
+    $form['#submit'][] = 'ymaps_routes_form_submit';
 
     return $form;
   }
   function ymaps_routes_form_validate($elements, &$form_state) {
     if(!preg_match('/^[a-z0-9]+$/i', $form_state['values']['line_color']))
       form_set_error('line_color', t('Value of field <em><b>Line color</b></em> should contains only alphabetic and numbers'));
+
+    //@todo Добавить валидаторы веса и размера
+    $validators = array(
+      'file_validate_is_image' => array()
+    );
+    $dir = file_directory_path().'/ymaps_routes';
+    if(file_check_directory($dir, 1)) {
+      $file = file_save_upload('markers_file', $validators, $dir);
+
+      if($file) {
+        $form_state['values']['markers_file'] = $file;
+      }
+    }
+  }
+  function ymaps_routes_form_submit($form, &$form_state) {
+    $file = $form_state['values']['markers_file'];
+    if(!empty($file)) {
+      file_set_status($file, FILE_STATUS_PERMANENT);
+      $form_state['values']['markers_file'] = $file->fid;
+    }
   }
 
   function ymaps_routes_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
     if(in_array($node->type, variable_get(VARIABLE_CONTENT_TYPES, array()))) {
       $route = array(
         'nid' => $node->nid,
-        'line_width' => $node->line_width,
-        'line_color' => $node->line_color,
-        'json_value' => $node->polyline
+        'fid' => $node->markers_file ? $node->markers_file : $node->markers_list,
+        'line_width' => $node->line_width ? $node->line_width : 0,
+        'line_color' => $node->line_color ? $node->line_color : 0,
+        'json_value' => $node->polyline ? $node->polyline : 0
       );
 
       switch($op) {
@@ -182,7 +234,7 @@
           if($route && $route->json_value) {
             drupal_add_js(array(
               'ymaps_routes' => array(
-                  'map_controls' => variable_get(BLOCK_MAP_CONTROLS, array('TYPE_CONTROL', 'ZOOM', 'SCALE_LINE'))
+                'map_controls' => variable_get(BLOCK_MAP_CONTROLS, array('TYPE_CONTROL', 'ZOOM', 'SCALE_LINE'))
               )
             ), 'setting');
             drupal_add_js(array(
@@ -194,6 +246,26 @@
                  'line_color' => $route->line_color ? $route->line_color : variable_get(VARIABLE_LINE_COLOR, LINE_COLOR_DEFAULT))
             ), 'setting');
             drupal_add_js(array('ymaps_routes' => array('json_value' => $route->json_value)), 'setting');
+
+            if($route->fid) {
+              
+              $marker = db_fetch_object(db_query("SELECT * FROM {files} WHERE `fid` = %d", $route->fid));
+
+              if(db_affected_rows()) {
+                $fileinfo = image_get_info($marker->filepath);
+
+                drupal_add_js(array(
+                  'ymaps_routes' => array(
+                    'marker_style' => array(
+                      'width' => $fileinfo['width'],
+                      'height' => $fileinfo['height'],
+                      'filepath' => $marker->filepath
+                    )
+                  )
+                ), 'setting');
+              }
+              
+            }
             drupal_add_js(MODULE_PATH.'/js/user.js');
 
             $block['subject'] = t('Ymaps routes');

@@ -11,6 +11,17 @@ function drawRoute(json_value) {
 
   YMaps.Styles.add("ymaps_routes_polyline", ps);
 
+  if(typeof Drupal.settings.ymaps_routes.marker_style != 'undefined') {
+    var ms = new YMaps.Style();
+    ms.iconStyle = new YMaps.IconStyle();
+    ms.iconStyle.href = Drupal.settings.basePath + Drupal.settings.ymaps_routes.marker_style.filepath;
+    console.log(ms.iconStyle.href);
+    ms.iconStyle.size = new YMaps.Point(Drupal.settings.ymaps_routes.marker_style.width, Drupal.settings.ymaps_routes.marker_style.height);
+    ms.iconStyle.offset = new YMaps.Point(-(Drupal.settings.ymaps_routes.marker_style.width/2), -Drupal.settings.ymaps_routes.marker_style.height);
+
+    YMaps.Styles.add("ymaps_routes_marker", ms);
+  }
+
   polyline.setStyle("ymaps_routes_polyline");
   polyline.setOptions({hasBalloon: false});
 
@@ -21,6 +32,7 @@ function drawRoute(json_value) {
     if(this.type == 1) {
       var stopPoint = new YMaps.Placemark(new YMaps.GeoPoint(this.lng, this.lat));
       stopPoint.name = this.stopPointName;
+      stopPoint.setStyle("ymaps_routes_marker");
       map.addOverlay(stopPoint);
     }
 
