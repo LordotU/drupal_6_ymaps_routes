@@ -1,6 +1,21 @@
 <?php
 
   function ymaps_routes_schema() {
+    $schema['ymaps_routes_markers'] = array(
+      'fields' => array(
+        'mid' => array(
+          'type' => 'serial',
+          'unsigned' => true,
+          'not null' => true
+        ),
+        'fid' => array(
+          'type' => 'int',
+          'unsigned' => true,
+          'nut null' => true
+        )
+      ),
+      'primary key' => array('mid')
+    );
     $schema['ymaps_routes'] = array(
       'fields' => array(
         'nid' => array(
@@ -8,7 +23,7 @@
           'unsigned' => true,
           'not null' => true
         ),
-        'fid' => array(
+        'mid' => array(
           'type' => 'int',
           'unsigned' => true
         ),
@@ -31,8 +46,16 @@
   }
 
   function ymaps_routes_install() {
+    drupal_install_schema('ymaps_routes_markers');
     drupal_install_schema('ymaps_routes');
   }
   function ymaps_routes_uninstall() {
+    $markers_query = db_query("SELECT {files}.`filepath`, {files}.`fid` FROM {files} INNER JOIN {ymaps_routes_markers} ON {ymaps_routes_markers}.`fid` = {files}.`fid`");
+    while($markers_result = db_fetch_object($markers_query)) {
+      db_query('DELETE FROM {files} WHERE `fid` = %d', $markers_result->fid);
+      file_delete($markers_result->filepath);
+    }
+
+    drupal_uninstall_schema('ymaps_routes_markers');
     drupal_uninstall_schema('ymaps_routes');
   }

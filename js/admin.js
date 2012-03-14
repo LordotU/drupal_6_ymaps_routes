@@ -86,7 +86,7 @@ function addDeletePoints(polyline, index) {
 }
 
 function polylineServices() {
-  if($('#edit-polyline').val()) {
+  if($('#edit-polyline').val() && $('#edit-polyline').val() != "0") {
     $('#edit-waiting').show();
     addPointsToMap(JSON.parse($('#edit-polyline').val()))
   }

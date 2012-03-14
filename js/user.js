@@ -38,6 +38,6 @@ function drawRoute(json_value) {
 
     polyline.addPoint(new YMaps.GeoPoint(this.lng, this.lat));
     if(route.points.length == i+1)
-    map.setBounds(new YMaps.GeoCollectionBounds(polyline.getPoints()));
+      map.setBounds(new YMaps.GeoCollectionBounds(polyline.getPoints()));
   });
 }

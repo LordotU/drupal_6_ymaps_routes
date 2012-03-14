@@ -34,11 +34,11 @@
   }
 
   function _ymaps_routes_get_markers() {
-    $markers_query = db_query("SELECT {files}.`filepath`, {files}.`fid` FROM {files} INNER JOIN {ymaps_routes} ON {ymaps_routes}.`fid` = {files}.`fid`");
+    $markers_query = db_query("SELECT {files}.`filepath`, {ymaps_routes_markers}.`mid` FROM {files} INNER JOIN {ymaps_routes_markers} ON {ymaps_routes_markers}.`fid` = {files}.`fid`");
 
     $markers = array();
     while($markers_result = db_fetch_object($markers_query))
-      $markers[$markers_result->fid] = theme_image($markers_result->filepath); //@todo Добавить ресайз маркеров к одному линейному размеру
+      $markers[$markers_result->mid] = theme_image($markers_result->filepath);
 
     return $markers;
   }
@@ -134,7 +134,7 @@
       $form['ymaps-routes']['markers']['markers_list'] = array(
         '#type' => 'radios',
         '#options' => _ymaps_routes_get_markers(),
-        '#default_value' => $route ? $route->fid : 0
+        '#default_value' => $route->mid ? $route->mid : 0
       );
       $form['ymaps-routes']['markers']['markers_file'] = array(
         '#type' => 'file',
@@ -145,7 +145,7 @@
         '#type' => 'textarea',
         '#resizable' => false,
         '#attributes' => array('style' => 'display:none;'),
-        '#default_value' => $route ? $route->json_value : ''
+        '#default_value' => $route->json_value ? $route->json_value : 0
       );
       $form['ymaps-routes']['polyline']['#suffix'] = '
         <div id="YMaps_Map" class="admin"></div>
@@ -170,7 +170,7 @@
     return $form;
   }
   function ymaps_routes_form_validate($elements, &$form_state) {
-    if(!preg_match('/^[a-z0-9]+$/i', $form_state['values']['line_color']))
+    if(!empty($form_state['values']['line_color']) && !preg_match('/^[a-z0-9]+$/i', $form_state['values']['line_color']))
       form_set_error('line_color', t('Value of field <em><b>Line color</b></em> should contains only alphabetic and numbers'));
 
     //@todo Добавить валидаторы веса и размера
@@ -190,15 +190,20 @@
     $file = $form_state['values']['markers_file'];
     if(!empty($file)) {
       file_set_status($file, FILE_STATUS_PERMANENT);
+
+      $marker = array('fid' => $file->fid);
+      drupal_write_record('ymaps_routes_markers', $marker);
+
       $form_state['values']['markers_file'] = $file->fid;
     }
   }
 
   function ymaps_routes_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
     if(in_array($node->type, variable_get(VARIABLE_CONTENT_TYPES, array()))) {
+      
       $route = array(
         'nid' => $node->nid,
-        'fid' => $node->markers_file ? $node->markers_file : $node->markers_list,
+        'mid' => $node->markers_file ? db_last_insert_id('ymaps_routes_markers', 'mid') : $node->markers_list,
         'line_width' => $node->line_width ? $node->line_width : 0,
         'line_color' => $node->line_color ? $node->line_color : 0,
         'json_value' => $node->polyline ? $node->polyline : 0
@@ -247,9 +252,16 @@
             ), 'setting');
             drupal_add_js(array('ymaps_routes' => array('json_value' => $route->json_value)), 'setting');
 
-            if($route->fid) {
+            if($route->mid) {
               
-              $marker = db_fetch_object(db_query("SELECT * FROM {files} WHERE `fid` = %d", $route->fid));
+              $marker = db_fetch_object(db_query("SELECT
+                                                    {files}.`filepath`
+                                                  FROM
+                                                    {files}
+                                                  INNER JOIN {ymaps_routes_markers} ON {ymaps_routes_markers}.`fid` = {files}.`fid`
+                                                  WHERE
+                                                    {ymaps_routes_markers}.`mid` = %d",
+                                        $route->mid));
 
               if(db_affected_rows()) {
                 $fileinfo = image_get_info($marker->filepath);
