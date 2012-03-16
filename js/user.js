@@ -1,9 +1,12 @@
 /*
- *Отрисовываем выбранный маршрут вместе с остановками
+ * Draw concrete route
+ *
+ * @param {string} String value of route JSON object
  */
 function drawRoute(json_value) {
-  polyline = new YMaps.Polyline();
+  polyline = new YMaps.Polyline(); //Init polyline
 
+  //Init polyline style
   var ps = new YMaps.Style();
   ps.lineStyle = new YMaps.LineStyle();
   ps.lineStyle.strokeColor = Drupal.settings.ymaps_routes.line_color;
@@ -11,6 +14,12 @@ function drawRoute(json_value) {
 
   YMaps.Styles.add("ymaps_routes_polyline", ps);
 
+  polyline.setStyle("ymaps_routes_polyline");
+  polyline.setOptions({hasBalloon: false});
+
+  map.addOverlay(polyline); //Add polyline to map
+
+  //Init checkpoint marker style
   if(typeof Drupal.settings.ymaps_routes.marker_style != 'undefined') {
     var ms = new YMaps.Style();
     ms.iconStyle = new YMaps.IconStyle();
@@ -22,12 +31,9 @@ function drawRoute(json_value) {
     YMaps.Styles.add("ymaps_routes_marker", ms);
   }
 
-  polyline.setStyle("ymaps_routes_polyline");
-  polyline.setOptions({hasBalloon: false});
+  var route = JSON.parse(json_value); //Parse @param string to JSON
 
-  map.addOverlay(polyline);
-
-  var route = JSON.parse(json_value);
+  //Iterate through JSON object and draw route and checkpoints
   $.slowEach(route.points, 10, function(i) {
     if(this.type == 1) {
       var stopPoint = new YMaps.Placemark(new YMaps.GeoPoint(this.lng, this.lat));

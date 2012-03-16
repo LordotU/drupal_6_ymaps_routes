@@ -1,23 +1,45 @@
 <?php
+
+  /**
+   * Set path to the module
+   */
   define('MODULE_PATH', drupal_get_path('module', 'ymaps_routes'));
 
+  /**
+   * Group of constants that sets module variables names
+   */
   define('VARIABLE_API_KEY', 'ymaps-routes-api-key');
   define('VARIABLE_CONTENT_TYPES', 'ymaps-routes-content-types');
   define('VARIABLE_LINE_WIDTH', 'ymaps-routes-line-width');
   define('VARIABLE_LINE_COLOR', 'ymaps-routes-line-color');
   define('VARIABLE_MAP_CONTROLS', 'ymaps-routes-map-controls');
 
+  /**
+   * Group of constants that sets default values of module variables
+   */
   define('API_KEY_DEFAULT', '');
   define('LINE_WIDTH_DEFAULT', '3');
   define('LINE_COLOR_DEFAULT', 'ff0000');
 
+  /**
+   * Group of constants that sets module variables names for block
+   */
   define('BLOCK_WIDTH', 'ymaps-routes-block-width');
   define('BLOCK_HEIGHT', 'ymaps-routes-block-height');
   define('BLOCK_MAP_CONTROLS', 'ymaps-routes-block-map-controls');
 
+  /**
+   * Group of constants that sets default values of module block variables
+   */
   define('BLOCK_WIDTH_DEFAULT', '300');
   define('BLOCK_HEIGHT_DEFAULT', '300');
 
+  /**
+   * Construct value for variable_set() function from checkboxes values
+   *
+   * @param array $array of checkboxes values that submitted from form
+   * @return array value for variable_set() function
+   */
   function _ymaps_routes_construct_variable($array) {
     $result = array();
     foreach($array as $key => $value)
@@ -27,12 +49,22 @@
     return $result;
   }
 
+  /**
+   * Load concrete route from database
+   *
+   * @return object|bool route object or FALSE
+   */
   function _ymaps_routes_get_route() {
     $query = db_query("SELECT * FROM {ymaps_routes} WHERE `nid` = %d", arg(1));
 
     return arg(0)=='node' && db_affected_rows() ? db_fetch_object($query) : false;
   }
 
+  /**
+   * Get markers from markers library in database
+   *
+   * @return array of markers ids and images
+   */
   function _ymaps_routes_get_markers() {
     $markers_query = db_query("SELECT {files}.`filepath`, {ymaps_routes_markers}.`mid` FROM {files} INNER JOIN {ymaps_routes_markers} ON {ymaps_routes_markers}.`fid` = {files}.`fid`");
 
@@ -43,6 +75,11 @@
     return $markers;
   }
 
+  /**
+   * Implementation of hook_menu()
+   *
+   * @return array of themnig rules
+   */
   function ymaps_routes_theme() {
     return array(
       'ymaps_routes_block' => array(
@@ -54,6 +91,11 @@
     );
   }
 
+  /**
+   * Implementation of hook_init()
+   *
+   * @return void
+   */
   function ymaps_routes_init() {
     drupal_add_css(MODULE_PATH.'/css/map.css');
     drupal_add_js('document.write("<" + "script type=\'text/javascript\' src=\'http://api-maps.yandex.ru/1.1/index.xml?key='.variable_get('ymaps-routes-api-key', null).'\'><" + "/script>");', 'inline');
@@ -63,10 +105,20 @@
     drupal_add_js(array('ymaps_routes' => array('is_admin' => false)), 'setting');
   }
 
+  /**
+   * Implementation of hook_perm()
+   *
+   * @return array
+   */
   function ymaps_routes_perm() {
     return array('access ymaps-routes settings', 'access ymaps-routes content');
   }
 
+  /**
+   * Implementation of hook_menu()
+   *
+   * @return array
+   */
   function ymaps_routes_menu() {
     $items['admin/settings/ymaps_routes'] = array(
       'title' => 'Ymaps routes settings',
@@ -80,6 +132,14 @@
     return $items;
   }
 
+  /**
+   * Implementation of hook_form_alter()
+   *
+   * @param array $form form array
+   * @param array $form_state form state array
+   * @param string $form_id form id
+   * @return void
+   */
   function ymaps_routes_form_alter(&$form, &$form_state, $form_id) {
     if(in_array($form['type']['#value'], variable_get(VARIABLE_CONTENT_TYPES, array())) && user_access('access ymaps-routes content')) {
       $route = _ymaps_routes_get_route();
@@ -165,6 +225,13 @@
       $form['#after_build'][] = 'ymaps_routes_form_after_build';
     }
   }
+  /**
+   * Route form after build manipulation
+   *
+   * @param array $form from array
+   * @param array $from_state form state array
+   * @return array form array
+   */
   function ymaps_routes_form_after_build($form, &$from_state) {
     drupal_add_css(MODULE_PATH.'/css/admin.css');
     drupal_add_js(MODULE_PATH.'/js/admin.js');
@@ -180,6 +247,13 @@
 
     return $form;
   }
+  /**
+   * Implementation of _form_validate()
+   *
+   * @param array $elements form elements
+   * @param array $form_state form state array
+   * @return void
+   */
   function ymaps_routes_form_validate($elements, &$form_state) {
     if(!empty($form_state['values']['line_color']) && !preg_match('/^[a-z0-9]+$/i', $form_state['values']['line_color']))
       form_set_error('line_color', t('Value of field <em><b>Line color</b></em> should contains only alphabetic and numbers'));
@@ -197,6 +271,13 @@
       }
     }
   }
+  /**
+   * Implementation of _form_submit()
+   *
+   * @param array $form form array
+   * @param array $form_state form state array
+   * @return void
+   */
   function ymaps_routes_form_submit($form, &$form_state) {
     $file = $form_state['values']['markers_file'];
     if(!empty($file)) {
@@ -209,6 +290,15 @@
     }
   }
 
+  /**
+   * Implementation of hook_nodeapi()
+   *
+   * @param object $node node object
+   * @param string $op node operation
+   * @param null $a3
+   * @param null $a4
+   * @return void
+   */
   function ymaps_routes_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
     if(in_array($node->type, variable_get(VARIABLE_CONTENT_TYPES, array()))) {
       
@@ -234,6 +324,14 @@
     }
   }
 
+  /**
+   * Implementation of hook_block()
+   *
+   * @param string $op block operation
+   * @param int $delta block delta value
+   * @param array $edit block parameters
+   * @return array
+   */
   function ymaps_routes_block($op = 'list', $delta = 0, $edit = array()) {
     switch($op) {
       case 'list':

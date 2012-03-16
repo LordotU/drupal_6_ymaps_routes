@@ -1,5 +1,10 @@
 <?php
-  
+
+  /**
+   * Collect node types and map it to another array
+   *
+   * @return array
+   */
   function _ymaps_routes_get_content_types() {
     $types = node_get_types('types');
 
@@ -10,6 +15,11 @@
     return $result;
   }
 
+  /**
+   * Implementation of _form()
+   *
+   * @return array
+   */
   function ymaps_routes_settings_form() {
     $form['api-key'] = array(
       '#type' => 'fieldset',
@@ -102,6 +112,13 @@
 
     return $form;
   }
+  /**
+   * Implementation of _form_validate()
+   *
+   * @param array $elements
+   * @param array $form_state
+   * @return void
+   */
   function ymaps_routes_settings_form_validate($elements, &$form_state) {
     if(empty($form_state['values']['api-key-value']))
       form_set_error('api-key-value', t('Field <em><b>API key</b></em> is required'));
@@ -110,6 +127,13 @@
     if(!preg_match('/^[a-z0-9]+$/i', $form_state['values']['route-line-color']))
       form_set_error('route-line-color', t('Value of field <em><b>Line color</b></em> should contains only alphabetic and numbers'));
   }
+  /**
+   * Implementation of _form_submit()
+   *
+   * @param array $form
+   * @param array $form_state
+   * @return void
+   */
   function ymaps_routes_settings_form_submit($form, &$form_state) {
     variable_set(VARIABLE_API_KEY, $form_state['values']['api-key-value']);
 

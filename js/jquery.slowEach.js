@@ -1,3 +1,11 @@
+/**
+ * jQuery $.each() with async delay
+ *
+ * @param {array} array
+ * @param {number} interval
+ * @param {string} callback
+ */
+
 jQuery.slowEach = function( array, interval, callback ) {
   if( ! array.length ) return;
   var i = 0;
