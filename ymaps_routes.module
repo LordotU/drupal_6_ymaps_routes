@@ -58,8 +58,8 @@
 
   function ymaps_routes_menu() {
     $items['admin/settings/ymaps_routes'] = array(
-      'title' => t('Ymaps routes settings'),
-      'description' => t('This page allows you to setup Ymaps routes module'),
+      'title' => 'Ymaps routes settings',
+      'description' => 'This page allows you to setup Ymaps routes module',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('ymaps_routes_settings_form'),
       'access arguments' => array('access ymaps-routes settings'),
