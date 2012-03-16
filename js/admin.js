@@ -141,6 +141,12 @@ function polylineInit() {
         tempIndex = index;
 
       return points[index];
+    },
+    onPointDrawing: function(points, index, actionMarker) {
+      if(actionMarker)
+        tempIndex = index;
+
+      return points[index];
     }
   });
 
@@ -174,7 +180,7 @@ function polylineInit() {
 
   // Set polyline PositionChange event handler
   YMaps.Events.observe(polyline, polyline.Events.PositionChange, function () {
-    addDeletePoints(polyline, tempIndex, false);
+    addDeletePoints(polyline, tempIndex);
 
     tempIndex = undefined;
   });
