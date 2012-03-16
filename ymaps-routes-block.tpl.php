@@ -1,0 +1,1 @@
+<div id="YMaps_Map" class="user" style="height:<?php print $block_size['height']; ?>px;width:<?php print $block_size['width']; ?>px;"></div>
