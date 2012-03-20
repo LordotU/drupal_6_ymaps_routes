@@ -205,7 +205,9 @@
       $form['ymaps-routes']['markers']['markers_list'] = array(
         '#type' => 'radios',
         '#options' => _ymaps_routes_get_markers(),
-        '#default_value' => $route->mid ? $route->mid : 0
+        '#default_value' => $route->mid ? $route->mid : 0,
+        '#prefix' => '<div class="container-inline">',
+        '#suffix' => '</div>'
       );
       $form['ymaps-routes']['markers']['markers_file'] = array(
         '#type' => 'file',

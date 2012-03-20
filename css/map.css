@@ -29,3 +29,8 @@ div.YMaps-b-balloon-content {
   overflow: auto !important;
   width: auto !important;
 }
+
+/*Inline display for markers icons*/
+.container-inline div label img {
+  vertical-align: middle;
+}
