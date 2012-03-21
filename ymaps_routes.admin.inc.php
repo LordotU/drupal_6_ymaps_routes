@@ -16,6 +16,17 @@
   }
 
   /**
+  *
+  * Shows module settings start page.
+  *
+  */
+  function ymaps_routes_admin_page() {
+    return t('<p>This module is designed to create routes on Yandex.Maps and allows you to create the route, customize its appearance, and attach it to a node.</p>').
+           t('<p>You can set default settings for all routes or you can specify settings (set route line color, line width and checkpoint marker) for a particular route.</p>').
+           t('<p>This module creates a block which you can place, on every region of your site.</p>');
+  }
+
+  /**
    * Implementation of _form()
    *
    * @return array
@@ -116,7 +127,7 @@
    * Implementation of _form_validate()
    *
    * @param array $elements
-   * @param array $form_state
+   * @param array &$form_state
    * @return void
    */
   function ymaps_routes_settings_form_validate($elements, &$form_state) {
@@ -131,7 +142,7 @@
    * Implementation of _form_submit()
    *
    * @param array $form
-   * @param array $form_state
+   * @param array &$form_state
    * @return void
    */
   function ymaps_routes_settings_form_submit($form, &$form_state) {
@@ -145,4 +156,69 @@
     variable_set(VARIABLE_MAP_CONTROLS, _ymaps_routes_construct_variable($form_state['values']['controls-value']));
 
     drupal_set_message(t('Settings has been successful saved!'));
+  }
+
+  /**
+   * Implementation of _form()
+   *
+   * @return array
+   */
+  function ymaps_routes_markers_form() {
+    $markers = _ymaps_routes_get_markers();
+    if(empty($markers)) {
+      drupal_set_message(t('Markers not found! Please, upload them from node edit page.'), 'error');
+      drupal_goto('admin/settings/ymaps_routes/routes');
+    }      
+
+    $form['routes-markers'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Marker library')
+    );
+    $form['routes-markers']['markers-list'] = array(
+      '#type' => 'checkboxes',
+      '#title' => '',
+      '#options' => $markers,
+      '#prefix' => '<div class="container-inline">',
+      '#suffix' => '</div>'
+    );
+
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete selected markers')
+    );
+
+    return $form;
+  }
+  /**
+   * Implementation of _form_validate()
+   *
+   * @param array $elements
+   * @param array &$form_state
+   * @return array
+   */
+  function ymaps_routes_markers_form_validate($elements, &$form_state) {
+  }
+  /**
+   * Implementation of _form_submit()
+   *
+   * @param array $form
+   * @param arrat &$form_state
+   * @return array
+   */
+  function ymaps_routes_markers_form_submit($form, &$form_state) {
+    $markers = $form_state['values']['markers-list'];
+
+    foreach ($markers as $key => $value)
+      if($value) {
+        $file = db_fetch_object(db_query("SELECT {files}.`filepath` FROM {files}, {ymaps_routes_markers} WHERE {files}.`fid` = {ymaps_routes_markers}.`fid` AND {ymaps_routes_markers}.`mid` = %d", $key));
+        
+        if(file_delete($file->filepath)) {
+          db_query("DELETE FROM {ymaps_routes_markers}, {files} USING {ymaps_routes_markers}, {files} WHERE {ymaps_routes_markers}.`fid` = {files}.`fid` AND {ymaps_routes_markers}.`mid` = %d", $key);
+
+          if(db_affected_rows()) {
+            drupal_set_message(t('Selected markers were successful deleted!'));
+            drupal_goto('admin/settings/ymaps_routes/markers');
+          }
+        }
+      }
   }
