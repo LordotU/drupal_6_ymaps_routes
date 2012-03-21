@@ -192,6 +192,22 @@
         '#attributes' => array('style' => 'display:inline;width:auto;')
       );
 
+      $form['ymaps-routes']['markers'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Markers')
+      );
+      $form['ymaps-routes']['markers']['markers_list'] = array(
+        '#type' => 'radios',
+        '#options' => _ymaps_routes_get_markers(),
+        '#default_value' => $route->mid ? $route->mid : 0,
+        '#prefix' => '<div class="container-inline">',
+        '#suffix' => '</div>'
+      );
+      $form['ymaps-routes']['markers']['markers_file'] = array(
+        '#type' => 'file',
+        '#title' => t('Upload new marker')
+      );
+
       $form['ymaps-routes']['point-types'] = array(
         '#type' => 'fieldset',
         '#title' => t('Point type'),
@@ -214,22 +230,6 @@
           '.t('The route is processing. Please, wait...').'
         </span>
       ';
-
-      $form['ymaps-routes']['markers'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Markers')
-      );
-      $form['ymaps-routes']['markers']['markers_list'] = array(
-        '#type' => 'radios',
-        '#options' => _ymaps_routes_get_markers(),
-        '#default_value' => $route->mid ? $route->mid : 0,
-        '#prefix' => '<div class="container-inline">',
-        '#suffix' => '</div>'
-      );
-      $form['ymaps-routes']['markers']['markers_file'] = array(
-        '#type' => 'file',
-        '#title' => t('Upload new marker')
-      );
 
       $form['ymaps-routes']['polyline'] = array(
         '#type' => 'textarea',
