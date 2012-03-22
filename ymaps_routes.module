@@ -188,7 +188,7 @@
         '#maxlength' => 6,
         '#size' => 6,
         '#field_prefix' => '#',
-        '#default_value' => $route->line_color ? $route->line_color : null,
+        '#default_value' => $route->line_color ? check_plain($route->line_color) : null,
         '#attributes' => array('style' => 'display:inline;width:auto;')
       );
 
@@ -427,7 +427,7 @@
           $form['ymaps-routes-block-settings']['block-width'] = array(
             '#type' => 'textfield',
             '#title' => t('Block width in pixels'),
-            '#default_value' => variable_get(BLOCK_WIDTH, BLOCK_WIDTH_DEFAULT),
+            '#default_value' => check_plain(variable_get(BLOCK_WIDTH, BLOCK_WIDTH_DEFAULT)),
             '#size' => 3,
             '#maxlength' => 4,
             '#field_suffix' => 'px'
@@ -435,7 +435,7 @@
           $form['ymaps-routes-block-settings']['block-height'] = array(
             '#type' => 'textfield',
             '#title' => t('Block height in pixels'),
-            '#default_value' => variable_get(BLOCK_HEIGHT, BLOCK_HEIGHT_DEFAULT),
+            '#default_value' => check_plain(variable_get(BLOCK_HEIGHT, BLOCK_HEIGHT_DEFAULT)),
             '#size' => 3,
             '#maxlength' => 4,
             '#field_suffix' => 'px'

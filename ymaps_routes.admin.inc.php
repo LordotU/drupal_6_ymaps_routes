@@ -40,7 +40,7 @@
       '#type' => 'textfield',
       '#title' => '',
       '#description' => t('If you don\'t have API key, you can get it here - <a href="http://api.yandex.ru/maps/form.xml">http://api.yandex.ru/maps/form.xml</a>. You should have an account on Yandex.'),
-      '#default_value' => variable_get(VARIABLE_API_KEY, API_KEY_DEFAULT),
+      '#default_value' => check_plain(variable_get(VARIABLE_API_KEY, API_KEY_DEFAULT)),
       /*
        * Добавлено специально для демо-версии
        */
@@ -84,7 +84,7 @@
       '#maxlength' => 6,
       '#size' => 6,
       '#field_prefix' => '#',
-      '#default_value' => variable_get(VARIABLE_LINE_COLOR, LINE_COLOR_DEFAULT),
+      '#default_value' => check_plain(variable_get(VARIABLE_LINE_COLOR, LINE_COLOR_DEFAULT)),
       /*
        * Добавлено специально для демо-версии
        */
@@ -170,6 +170,11 @@
       drupal_goto('admin/settings/ymaps_routes/routes');
     }      
 
+    $form['markers-token'] = array(
+      '#type' => 'hidden',
+      '#default_value' => drupal_get_token()
+    );
+
     $form['routes-markers'] = array(
       '#type' => 'fieldset',
       '#title' => t('Marker library')
@@ -197,6 +202,8 @@
    * @return array
    */
   function ymaps_routes_markers_form_validate($elements, &$form_state) {
+    if(!drupal_valid_token($form_state['values']['markers-token']))
+      form_set_error('markers-token', t('Invalid deletion token!'));
   }
   /**
    * Implementation of _form_submit()
