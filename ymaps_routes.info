@@ -1,4 +1,4 @@
 name = Ymaps Routes
-description = Allows to attach route on the map to node page
-version = 6.x-0.0.1
+description = This module is designed to create routes on Yandex.Maps and allows you to create the route, customize its appearance, and attach it to a node
+version = 6.x-1
 core = 6.x
