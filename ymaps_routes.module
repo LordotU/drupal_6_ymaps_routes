@@ -277,17 +277,38 @@
     if(!empty($form_state['values']['line_color']) && !preg_match('/^[a-z0-9]+$/i', $form_state['values']['line_color']))
       form_set_error('line_color', t('Value of field <em><b>Line color</b></em> should contains only alphabetic and numbers'));
 
-    //@todo Добавить валидаторы веса и размера
-    $validators = array(
-      'file_validate_is_image' => array()
-    );
     $dir = file_directory_path().'/ymaps_routes';
     if(file_check_directory($dir, 1)) {
-      $file = file_save_upload('markers_file', $validators, $dir);
+      $file = file_save_upload('markers_file', array(), $dir);
 
       if($file) {
-        $form_state['values']['markers_file'] = $file;
+        $error = false;
+        $type_error = file_validate_is_image($file);
+        $ext_error = file_validate_extensions($file, 'png');
+        $size_error = file_validate_size($file, 1024*100);
+
+        if(!empty($type_error)) {
+          $error = true;
+          form_set_error('markers_file', t('Uploaded file should be a PNG image!'));
+        }
+        if(!empty($ext_error)) {
+          $error = true;
+          form_set_error('markers_file', t('Uploaded file should have a .png extension!'));
+        }
+        if(!empty($size_error)) {
+          $error = true;
+          form_set_error('markers_file', t('Maximum size of uploaded file should be less then 100KB!'));
+        }
+
+        if(!$error)
+          $form_state['values']['markers_file'] = $file;
+        else {
+          file_delete($file->filepath);
+          db_query('DELETE FROM {files} WHERE `fid` = %d', $file->fid);
+        }
       }
+      else
+        form_set_error('markers_file', t('Unable to upload file!'));
     }
   }
   /**
