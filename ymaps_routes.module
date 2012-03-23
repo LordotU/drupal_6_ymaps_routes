@@ -307,8 +307,6 @@
           db_query('DELETE FROM {files} WHERE `fid` = %d', $file->fid);
         }
       }
-      else
-        form_set_error('markers_file', t('Unable to upload file!'));
     }
   }
   /**
