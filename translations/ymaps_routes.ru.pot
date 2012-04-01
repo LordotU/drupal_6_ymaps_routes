@@ -1,0 +1,214 @@
+# $Id$
+#
+# Russian translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  ymaps_routes.admin.inc.php: n/a
+#  ymaps_routes.module: n/a
+#  ymaps_routes.info: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2012-03-23 11:53+0400\n"
+"PO-Revision-Date: 2012-03-23 11:53+0400\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Russian <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+
+#: ymaps_routes.admin.inc.php:24
+msgid "<p>This module is designed to create routes on Yandex.Maps and allows you to create the route, customize its appearance, and attach it to a node.</p>"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:25
+msgid "<p>You can set default settings for all routes or you can specify settings (set route line color, line width and checkpoint marker) for a particular route.</p>"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:26
+msgid "<p>This module creates a block which you can place, on every region of your site.</p>"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:37
+msgid "API key"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:42
+msgid "If you don't have API key, you can get it here - <a href=\"http://api.yandex.ru/maps/form.xml\">http://api.yandex.ru/maps/form.xml</a>. You should have an account on Yandex."
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:52
+msgid "Content types"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:57
+msgid "Select content types to display routes."
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:68 ymaps_routes.module:174
+msgid "Route line settings"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:69
+msgid "Default line settings for all routes. <b>Note, that the individual route settings will override default settings..</b>"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:73 ymaps_routes.module:181
+msgid "Line width in pixels"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:83 ymaps_routes.module:187
+msgid "Line color in HEX"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:96
+msgid "Admin map controls visibility"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:117
+msgid "Save settings for all routes"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:135
+msgid "Field <em><b>API key</b></em> is required"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:137
+msgid "Field <em><b>Line color</b></em> is required"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:139 ymaps_routes.module:278
+msgid "Value of field <em><b>Line color</b></em> should contains only alphabetic and numbers"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:158
+msgid "Settings has been successful saved!"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:169
+msgid "Markers not found! Please, upload them from node edit page."
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:180
+msgid "Marker library"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:192
+msgid "Delete selected markers"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:206
+msgid "Invalid deletion token!"
+msgstr ""
+
+#: ymaps_routes.admin.inc.php:226
+msgid "Selected markers were successful deleted!"
+msgstr ""
+
+#: ymaps_routes.module:168;430
+msgid "Ymaps routes"
+msgstr ""
+
+#: ymaps_routes.module:175
+msgid "Line settings for this route. <b>This values will override defaults.</b>"
+msgstr ""
+
+#: ymaps_routes.module:197
+msgid "Markers"
+msgstr ""
+
+#: ymaps_routes.module:208
+msgid "Upload new marker"
+msgstr ""
+
+#: ymaps_routes.module:213
+msgid "Point type"
+msgstr ""
+
+#: ymaps_routes.module:220
+msgid "Edge point"
+msgstr ""
+
+#: ymaps_routes.module:220
+msgid "Stop point"
+msgstr ""
+
+#: ymaps_routes.module:226
+msgid "Clear map"
+msgstr ""
+
+#: ymaps_routes.module:230
+msgid "The route is processing. Please, wait..."
+msgstr ""
+
+#: ymaps_routes.module:292
+msgid "Uploaded file should be a PNG image!"
+msgstr ""
+
+#: ymaps_routes.module:296
+msgid "Uploaded file should have a .png extension!"
+msgstr ""
+
+#: ymaps_routes.module:300
+msgid "Maximum size of uploaded file should be less then 100KB!"
+msgstr ""
+
+#: ymaps_routes.module:377
+msgid "Ymaps routes block"
+msgstr ""
+
+#: ymaps_routes.module:443
+msgid "Ymaps routes block settings"
+msgstr ""
+
+#: ymaps_routes.module:448
+msgid "Block width in pixels"
+msgstr ""
+
+#: ymaps_routes.module:456
+msgid "Block height in pixels"
+msgstr ""
+
+#: ymaps_routes.module:465
+msgid "Map controls visibility"
+msgstr ""
+
+#: ymaps_routes.module:114
+msgid "access ymaps-routes settings"
+msgstr ""
+
+#: ymaps_routes.module:114
+msgid "access ymaps-routes content"
+msgstr ""
+
+#: ymaps_routes.module:124
+msgid "Ymaps routes settings"
+msgstr ""
+
+#: ymaps_routes.module:131
+msgid "Routes settings"
+msgstr ""
+
+#: ymaps_routes.module:132
+msgid "This page allows you to setup Ymaps routes module defaults"
+msgstr ""
+
+#: ymaps_routes.module:140
+msgid "Markers library"
+msgstr ""
+
+#: ymaps_routes.module:141
+msgid "This page allows you to manage Ymaps routes module uploaded markers"
+msgstr ""
+
+#: ymaps_routes.info:0
+msgid "Ymaps Routes"
+msgstr ""
+
+#: ymaps_routes.info:0
+msgid "This module is designed to create routes on Yandex.Maps and allows you to create the route, customize its appearance, and attach it to a node"
+msgstr ""
+
