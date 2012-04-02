@@ -46,7 +46,6 @@
   }
 
   function ymaps_routes_install() {
-    drupal_install_schema('ymaps_routes_markers');
     drupal_install_schema('ymaps_routes');
   }
   function ymaps_routes_uninstall() {
@@ -56,6 +55,5 @@
       file_delete($markers_result->filepath);
     }
 
-    drupal_uninstall_schema('ymaps_routes_markers');
     drupal_uninstall_schema('ymaps_routes');
   }
