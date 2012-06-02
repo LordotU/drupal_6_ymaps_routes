@@ -32,21 +32,6 @@
    * @return array
    */
   function ymaps_routes_settings_form() {
-    $form['api-key'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('API key')
-    );
-    $form['api-key']['api-key-value'] = array(
-      '#type' => 'textfield',
-      '#title' => '',
-      '#description' => t('If you don\'t have API key, you can get it here - <a href="http://api.yandex.ru/maps/form.xml">http://api.yandex.ru/maps/form.xml</a>. You should have an account on Yandex.'),
-      '#default_value' => check_plain(variable_get(VARIABLE_API_KEY, API_KEY_DEFAULT)),
-      /*
-       * Добавлено специально для демо-версии
-       */
-      '#disabled' => user_access('access administration pages') ? false : true
-    );
-
     $form['content-types'] = array(
       '#type' => 'fieldset',
       '#title' => t('Content types')
@@ -66,7 +51,7 @@
     $form['route-line-settings'] = array(
       '#type' => 'fieldset',
       '#title' => t('Route line settings'),
-      '#description' => t('Default line settings for all routes. <b>Note, that the individual route settings will override default settings..</b>')
+      '#description' => t('Default line settings for all routes. <b>Note, that the individual route settings will override default settings.</b>')
     );
     $form['route-line-settings']['route-line-width'] = array(
       '#type' => 'select',
@@ -131,8 +116,6 @@
    * @return void
    */
   function ymaps_routes_settings_form_validate($elements, &$form_state) {
-    if(empty($form_state['values']['api-key-value']))
-      form_set_error('api-key-value', t('Field <em><b>API key</b></em> is required'));
     if(empty($form_state['values']['route-line-color']))
       form_set_error('route-line-color', t('Field <em><b>Line color</b></em> is required'));
     if(!preg_match('/^[a-z0-9]+$/i', $form_state['values']['route-line-color']))
@@ -146,8 +129,6 @@
    * @return void
    */
   function ymaps_routes_settings_form_submit($form, &$form_state) {
-    variable_set(VARIABLE_API_KEY, $form_state['values']['api-key-value']);
-
     variable_set(VARIABLE_CONTENT_TYPES, _ymaps_routes_construct_variable($form_state['values']['content-types-list']));
 
     variable_set(VARIABLE_LINE_WIDTH, $form_state['values']['route-line-width']);
