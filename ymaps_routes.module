@@ -8,7 +8,6 @@
   /**
    * Group of constants that sets module variables names
    */
-  define('VARIABLE_API_KEY', 'ymaps-routes-api-key');
   define('VARIABLE_CONTENT_TYPES', 'ymaps-routes-content-types');
   define('VARIABLE_LINE_WIDTH', 'ymaps-routes-line-width');
   define('VARIABLE_LINE_COLOR', 'ymaps-routes-line-color');
@@ -17,7 +16,6 @@
   /**
    * Group of constants that sets default values of module variables
    */
-  define('API_KEY_DEFAULT', '');
   define('LINE_WIDTH_DEFAULT', '3');
   define('LINE_COLOR_DEFAULT', 'ff0000');
 
