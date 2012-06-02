@@ -20,25 +20,27 @@ $(document).ready(function() {
     }
   }
   
-  YMaps.jQuery(function () {
+  ymaps.ready(function () {
     if($("#YMaps_Map").length) {
       
-      map = new YMaps.Map($("#YMaps_Map"));
+      map = new ymaps.Map("YMaps_Map", {
+        center: [41.965167, 45.042935],
+        zoom: 1,
+      });
 
-      map.setCenter(new YMaps.GeoPoint(41.965167, 45.042935), 1);
-
+     
       //Set map controls
       var mapControls = {
-        TYPE_CONTROL: new YMaps.TypeControl(),
-        TOOL_BAR: new YMaps.ToolBar(),
-        ZOOM: new YMaps.Zoom(),
-        MINI_MAP: new YMaps.MiniMap(),
-        SCALE_LINE: new YMaps.ScaleLine(),
-        SEARCH_CONTROL: new YMaps.SearchControl({noPlacemark: true})
+        TYPE_CONTROL: "typeSelector",
+        TOOL_BAR: "mapTools",
+        ZOOM: "zoomControl",
+        MINI_MAP: "miniMap",
+        SCALE_LINE: "scaleLine",
+        SEARCH_CONTROL: "searchControl"
       };
       var blockMapControls = Drupal.settings.ymaps_routes.map_controls;
       for(var i = 0; i < blockMapControls.length; i++)
-        map.addControl(mapControls[blockMapControls[i]]);
+        map.controls.add(mapControls[blockMapControls[i]]);
 
       //@todo Разобраться, почему исчезает маршрут при нажатии Enter в области формы редактирования ноды
       $('#node-form').bind('keypress', function(e) {

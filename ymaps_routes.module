@@ -98,7 +98,7 @@
    */
   function ymaps_routes_init() {
     drupal_add_css(MODULE_PATH.'/css/map.css');
-    drupal_add_js('document.write("<" + "script type=\'text/javascript\' src=\'http://api-maps.yandex.ru/1.1/index.xml?key='.variable_get('ymaps-routes-api-key', null).'\'><" + "/script>");', 'inline');
+    drupal_add_js('document.write("<" + "script type=\'text/javascript\' src=\'http://api-maps.yandex.ru/2.0/?load=package.full&mode=debug&lang=ru-RU\'><" + "/script>");', 'inline');
     drupal_add_js(MODULE_PATH.'/js/map.js');
     drupal_add_js(MODULE_PATH.'/js/json2.js');
     drupal_add_js(MODULE_PATH.'/js/jquery.slowEach.js');
