@@ -3,9 +3,10 @@
  */
 var pointsGlobalArray = new Array();
 /**
- * Global map click listener object
+ * Global prompt cancel flag variable
  */
-var mapClickListener;
+var cancelFlag;
+
 
 /**
  * Adding point to textarea value
@@ -18,7 +19,6 @@ function addPointsToValue() {
 
   $('textarea[name="polyline"]').val('{"points":[' + pointsStringArray.join(',') + ']}');
 }
-
 /**
  * Draw concrete route
  *
@@ -26,89 +26,179 @@ function addPointsToValue() {
  */
 function addPointsToMap(route) {
   $.slowEach(route.points, 10, function(i) {
-    polyline.addPoint(new YMaps.GeoPoint($(this)[0].lng, $(this)[0].lat));
+    polyline.geometry.insert(i, [this.lat, this.lng]);
 
-    if($(this)[0].type == 1) {
-      var stopPoint = new YMaps.Placemark(new YMaps.GeoPoint($(this)[0].lng, $(this)[0].lat));
-      stopPoint.name = $(this)[0].stopPointName;
+    if(this.type == 1) {
+      var stopPoint = new ymaps.Placemark([this.lat, this.lng], {
+        balloonContent: this.stopPointName
+      });
+      map.geoObjects.add(stopPoint);
 
-      $(this)[0].placemark = stopPoint;
-      $(this)[0].placemark.name = stopPoint.name;
+      this.placemark = stopPoint;
+      this.placemark.name = this.stopPointName;
 
-      map.addOverlay(stopPoint);
+      map.geoObjects.add(stopPoint);
     }
 
-    pointsGlobalArray.push($(this)[0]);
+    pointsGlobalArray.push(this);
 
     if(route.points.length == i+1) {
-      polyline.startEditing();
+      polyline.editor.startEditing();
       $('#edit-waiting').hide();
-      map.setBounds(new YMaps.GeoCollectionBounds(polyline.getPoints()));
+      map.setBounds(polyline.geometry.getBounds());
     }
   });
 
   addPointsToValue();
 }
 
+
 /**
- * Adding and deleting points to/from map and global array
+ * Add polyline point
  *
- * @param {object} polyline
- * @param {number} index of point
+ * @param {array} array of new point's coordinates
+ * @param {number} index of new point
  */
-function addDeletePoints(polyline, index) {
-  var points = polyline.getPoints();
+function addPoint(coords, index) {
   var pointToAction = new Object();
 
-  if(points.length == pointsGlobalArray.length && typeof index != 'undefined') { //Change position of existing point
-    pointsGlobalArray[index].lat = polyline.getPoint(index).__lat;
-    pointsGlobalArray[index].lng = polyline.getPoint(index).__lng;
-    if(pointsGlobalArray[index].type == 1)
-      pointsGlobalArray[index].placemark.setGeoPoint(new YMaps.GeoPoint(polyline.getPoint(index).__lng, polyline.getPoint(index).__lat));
-  }
-  else if(points.length > pointsGlobalArray.length && typeof index != 'undefined') { //Set new point
-    pointToAction.lat = polyline.getPoint(index).__lat;
-    pointToAction.lng = polyline.getPoint(index).__lng;
-    pointToAction.type = $('input[name="point-type"]:checked').val();
+  pointToAction.lat = coords[0];
+  pointToAction.lng = coords[1];
+  pointToAction.type = $('input[name="point-type"]:checked').val();
 
-    if($('input[name="point-type"]:checked').val() == 1) {
-      var stopPointName = prompt('Введите название остановки:');
-      if(stopPointName == '' || !stopPointName) {
-        polyline.removePoint(index);
-        return;
-      }
-      pointToAction.stopPointName = stopPointName;
+  if(pointToAction.type == 1) {
+    var stopPointName = prompt('Введите название остановки:');
 
-      pointToAction.placemark = new YMaps.Placemark(new YMaps.GeoPoint(polyline.getPoint(index).__lng, polyline.getPoint(index).__lat));
-      pointToAction.placemark.name = stopPointName;
-      map.addOverlay(pointToAction.placemark);
+    if(stopPointName == '' || !stopPointName) {
+      cancelFlag = true;
+      polyline.geometry.remove(index);
+
+      return;
     }
+    pointToAction.stopPointName = stopPointName;
 
-    pointsGlobalArray.splice(index, 0, pointToAction);
+    pointToAction.placemark = new ymaps.Placemark(coords, {
+        balloonContent: stopPointName
+      });
+    map.geoObjects.add(pointToAction.placemark);
   }
-  else if(points.length < pointsGlobalArray.length && typeof index == 'undefined') { //Delete point
-    var endPointFlag = true;
-    for(var i = 0; i < points.length; i++)
-      if(pointsGlobalArray[i].lat != points[i].__lat && pointsGlobalArray[i].lng != points[i].__lng) {
-        if(pointsGlobalArray[i].type == 1)
-          map.removeOverlay(pointsGlobalArray[i].placemark);
-        pointsGlobalArray.splice(i, 1);
-        endPointFlag = false;
-        break;
-      }
-    if(endPointFlag) {
-      if(pointsGlobalArray[0].type == 1)
-        map.removeOverlay(pointsGlobalArray[i].placemark);
 
-      pointsGlobalArray.splice(-1,1);
-    }
+  pointsGlobalArray.splice(index, 0, pointToAction);
+
+  addPointsToValue();
+}
+/**
+ * Remove polyline point
+ *
+ * @param {number} index of point
+ */
+function removePoint(index) {
+  if(cancelFlag) {
+    cancelFlag = false;
+    
+    return;
   }
+
+  if(pointsGlobalArray[index].type == 1)
+    map.geoObjects.remove(pointsGlobalArray[index].placemark);
+
+  pointsGlobalArray.splice(index, 1);
+
+  addPointsToValue();
+}
+/**
+ * Move polyline point
+ *
+ * @param {coords} array of point's new coordinates
+ * @param {number} index of point
+ */
+function movePoint(coords, index) {
+  pointsGlobalArray[index].lat = coords[0];
+  pointsGlobalArray[index].lng = coords[1];
+  
+  if(pointsGlobalArray[index].type == 1)
+    pointsGlobalArray[index].placemark.geometry.setCoordinates(coords);
 
   addPointsToValue();
 }
 
+
 /**
- * Service functions
+ * click event handler for map
+ *
+ * @param e click event
+ */
+function mapClickEventHandler(e) {
+  polyline.geometry.insert(pointsGlobalArray.length, e.get('coordPosition'));
+}
+/**
+ * Compare old and new polyline coordinates
+ *
+ * @param oldCoordinates
+ * @param newCoordinates
+ */
+function coordinatesCompare(oldCoordinates, newCoordinates) {
+  var oldLength = oldCoordinates.length,
+      newLength =  newCoordinates.length;
+  var result = new Object();
+
+  if(oldLength < newLength) {
+    for(var i = 0; i < newLength; i++) {
+      if(typeof oldCoordinates[i] == 'undefined' || (newCoordinates[i][0] != oldCoordinates[i][0] && newCoordinates[i][1] != oldCoordinates[i][1])) {
+        result.type = 'addPoint';
+        result.coords = newCoordinates[i];
+        result.index = i;
+
+        return result;
+      }
+    }
+  }
+  else if(oldLength > newLength) {
+    for(var i = 0; i < oldLength; i++) {
+      if(typeof newCoordinates[i] == 'undefined' || (oldCoordinates[i][0] != newCoordinates[i][0] && oldCoordinates[i][1] != newCoordinates[i][1])) {
+        result.type = 'removePoint';
+        result.index = i;
+
+        return result;
+      }
+    }
+  }
+  else if(oldLength == newLength) {
+    for(var i = 0; i < oldLength; i++) {
+      if(newCoordinates[i][0] != oldCoordinates[i][0] || newCoordinates[i][1] != oldCoordinates[i][1]) {
+        result.type = 'movePoint';
+        result.coords = newCoordinates[i];
+        result.index = i;
+
+        return result;
+      }
+    }
+  }
+}
+/**
+ * geometrychange event handler for polyline
+ *
+ * @param e geometrychange event
+ */
+function polylineGeometrychangeEventHandler(e) {
+  var event = e.get('originalEvent');
+  var oldCoordinates = event.get('oldCoordinates'),
+      newCoordinates = event.get('newCoordinates');
+  var compareResult = coordinatesCompare(oldCoordinates, newCoordinates);
+
+  switch(compareResult.type) {
+    case 'addPoint':
+      addPoint(compareResult.coords, compareResult.index);break;
+    case 'removePoint':
+      removePoint(compareResult.index);break;
+    case 'movePoint':
+      movePoint(compareResult.coords, compareResult.index);break;
+  };
+}
+
+
+/**
+ * Service functions: addPointsToMap(), startEditing(), clearMap()
  */
 function polylineServices() {
   if($('#edit-polyline').val() && $('#edit-polyline').val() != "0") {
@@ -117,85 +207,48 @@ function polylineServices() {
   }
   else {
     $('#edit-waiting').hide();
-    polyline.startEditing();
+    polyline.editor.startEditing();
   }
 
-  $('#edit-clear-map').click(function(e) {
-    polylineDelete();
+  $('#edit-clear-map').unbind().click(function(e) {
+    clearMap();
     e.preventDefault();
   });
 }
-
 /**
  * Init polyline
  */
 function polylineInit() {
-  polyline = new YMaps.Polyline();
-  map.addOverlay(polyline);
-
-  var tempIndex;
-  // Set polyline onPointDragging event handler
-  polyline.setEditingOptions({
-    onPointDragging: function(points, index, actionMarker) {
-      if(actionMarker)
-        tempIndex = index;
-
-      return points[index];
-    },
-    onPointDrawing: function(points, index, actionMarker) {
-      if(actionMarker)
-        tempIndex = index;
-
-      return points[index];
-    }
-  });
-
+  polyline = new ymaps.Polyline([], {}, {}, {hasBalloon: false, hasHint: false});
+  map.geoObjects.add(polyline);
 
   // Set map Click event handler
-  mapClickListener = YMaps.Events.observe(map, map.Events.Click, function (map, mEvent) {
-    var pointObject = new Object();
-    var pointCoords = mEvent.getGeoPoint();
-
-    pointObject.lat = pointCoords.__lat;
-    pointObject.lng = pointCoords.__lng;
-    pointObject.type = $('input[name="point-type"]:checked').val();
-
-    if($('input[name="point-type"]:checked').val() == 1) {
-      var stopPointName = prompt('Введите название остановки:');
-
-      if(stopPointName == '' || !stopPointName) return;
-
-      pointObject.stopPointName = stopPointName;
-
-      pointObject.placemark = new YMaps.Placemark(pointCoords);
-      pointObject.placemark.name = stopPointName;
-
-      map.addOverlay(pointObject.placemark);
-    }
-
-    pointsGlobalArray.push(pointObject);
-
-    polyline.addPoint(pointCoords);
-  });
+  map.events.add('click', mapClickEventHandler);
 
   // Set polyline PositionChange event handler
-  YMaps.Events.observe(polyline, polyline.Events.PositionChange, function () {
-    addDeletePoints(polyline, tempIndex);
-
-    tempIndex = undefined;
-  });
+  polyline.events.add('geometrychange', polylineGeometrychangeEventHandler);
 
   polylineServices();
 }
-
 /**
  * Delete polyline and markers from map, global array and textarea
  */
-function polylineDelete() {
-  map.removeAllOverlays();
-  mapClickListener.cleanup();
-  pointsGlobalArray = new Array();
-  $('textarea[name="polyline"]').val('');
+function clearMap() {
+  if(confirm("Вы действительно хотите очистить карту?")) {
+    map.geoObjects.remove(polyline);
 
-  polylineInit();
+    $.each(pointsGlobalArray, function(i){
+      if(this.type == 1) {
+        map.geoObjects.remove(this.placemark);
+      }
+    });
+    
+    pointsGlobalArray = new Array();
+    $('textarea[name="polyline"]').val('');
+
+    map.events.remove('click', mapClickEventHandler);
+    polyline.events.remove('geometrychange', polylineGeometrychangeEventHandler);
+
+    polylineInit();
+  }
 }

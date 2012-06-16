@@ -25,10 +25,9 @@ $(document).ready(function() {
       
       map = new ymaps.Map("YMaps_Map", {
         center: [41.965167, 45.042935],
-        zoom: 1,
+        zoom: 1
       });
 
-     
       //Set map controls
       var mapControls = {
         TYPE_CONTROL: "typeSelector",
@@ -41,11 +40,6 @@ $(document).ready(function() {
       var blockMapControls = Drupal.settings.ymaps_routes.map_controls;
       for(var i = 0; i < blockMapControls.length; i++)
         map.controls.add(mapControls[blockMapControls[i]]);
-
-      //@todo Разобраться, почему исчезает маршрут при нажатии Enter в области формы редактирования ноды
-      $('#node-form').bind('keypress', function(e) {
-        if(e.which == 13) e.preventDefault();
-      });
 
       //Call map functions
       mapFunctions();
